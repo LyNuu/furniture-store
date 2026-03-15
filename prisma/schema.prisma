@@ -1,14 +1,76 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-}
-
 datasource db {
   provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  firstName String?  @map("first_name")
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  orders    Order[]
+
+  @@map("users_market")
+}
+
+model Item {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  price       Int
+  quantity    Int      @default(0)
+  imageUrl    String?  
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  orderItems  OrderItem[]
+
+  @@map("items_market")
+}
+
+enum OrderStatus {
+  PENDING   
+  PAID      
+  CANCELLED 
+  DELIVERED
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  status    OrderStatus @default(PENDING)
+  userId    Int         @map("user_id")
+  user      User        @relation(fields: [userId], references: [id])
+  items     OrderItem[] 
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  @@map("orders_market")
+}
+
+model OrderItem {
+  id        Int   @id @default(autoincrement())
+  quantity  Int   @default(1)
+  price     Int  
+
+  orderId   Int   @map("order_id")
+  order     Order @relation(fields: [orderId], references: [id])
+
+  itemId    Int   @map("item_id")
+  item      Item  @relation(fields: [itemId], references: [id])
+
+  @@unique([orderId, itemId]) 
+  @@map("order_items_market")
+}
+
+model Blog {
+  id          Int      @id @default(autoincrement())
+  title       String   
+  description String   
+  imageUrl    String?  @map("image_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("blogs_market")
 }

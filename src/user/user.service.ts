@@ -1,36 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { User } from './shemas/user.shema';
-import mongoose from 'mongoose';
+import { User } from "./user.model";
+import { UserDto } from "./dto/user.dto";
+import { ConflictException, Injectable } from "@nestjs/common";
+import { UserRepository } from "./user.repository";
 
 @Injectable()
 export class UserService {
-    constructor(@InjectModel(User.name)
-    private userModel: mongoose.Model<User>
-    ) { }
+    constructor(private userRepository : UserRepository) { }
 
-    async create(user: User): Promise<User> {
-        const createdUser = new this.userModel(user);
-        return createdUser.save();
-    }
-
-    async findAll(): Promise<User[]> {
-        return this.userModel.find().exec();
-    }
-
-    async findById(id: string): Promise<User> {
-        const user = await this.userModel.findById(id);
-        if (!user) {
-            throw new NotFoundException('User not found');
+    async createUser(createUserDto: UserDto) {
+        const user = new User();
+        user.email = createUserDto.email;
+        user.firstName = createUserDto.firstName;
+        user.password = createUserDto.password; 
+        try {
+            return await this.userRepository.save(user)
+        } catch (error) {
+            console.error('Error saving user:', error);
+            throw new ConflictException('user with this email already exists');
         }
-        return user;
-    }
-
-    async deleteById(id: string): Promise<User> {
-        const user = await this.userModel.findByIdAndDelete(id);
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
-        return user;
     }
 }
