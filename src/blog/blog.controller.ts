@@ -1,4 +1,4 @@
-import { Controller, Post } from "@nestjs/common";
+import { Controller, Post, Body } from "@nestjs/common";
 import { BlogService } from "./blog.service";
 import { BlogDto } from "./dto/blog.dto";
 
@@ -7,7 +7,7 @@ export class BlogController {
     constructor(private blogService: BlogService) {}
 
     @Post()
-    async createBlog(blog: BlogDto) {
+    async createBlog(@Body() blog: BlogDto) {
         return await this.blogService.createBlog(blog);
     }
 }
